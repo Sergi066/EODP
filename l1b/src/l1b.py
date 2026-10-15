@@ -81,4 +81,14 @@ class l1b(initL1b):
     def plotL1bToa(self, toa_l1b, outputdir, band):
         #TODO
         a=1 # dummy
+        mid_value = int(toa_l1b.shape[0] / 2)
+        fig, ax = plt.subplots()
+        ax.plot(toa_l1b[mid_value, :], 'k')
+        title = f"Equalization and restoration for {band}"
+        plt.suptitle(title)
+        plt.xlabel('ACT pixel [-]')
+        plt.ylabel('TOA [mW/m2/sr]')
+        plt.grid(True)
+        # plt.show
+        fig.savefig(outputdir + '/l1b_toa_' + band + '_graph.png')
 

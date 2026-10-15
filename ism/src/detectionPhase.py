@@ -115,7 +115,7 @@ class detectionPhase(initIsm):
         :return: toa in electrons
         """
         #TODO
-        return toae
+        return toa* QE
 
     def badDeadPixels(self, toa,bad_pix,dead_pix,bad_pix_red,dead_pix_red):
         """

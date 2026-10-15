@@ -72,10 +72,10 @@ class mtf:
 
         # Calculate the System MTF
         self.logger.debug("Calculation of the Sysmtem MTF by multiplying the different contributors")
-        Hsys = 1 # dummy
+        Hsys = Hdiff * Hdefoc * Hwfe * Hdet * Hsmear * Hmotion# dummy
 
         # Plot cuts ACT/ALT of the MTF
-        self.plotMtf(Hdiff, Hdefoc, Hwfe, Hdet, Hsmear, Hmotion, Hsys, nlines, ncolumns, fnAct, fnAlt, directory, band)
+        # self.plotMtf(Hdiff, Hdefoc, Hwfe, Hdet, Hsmear, Hmotion, Hsys, nlines, ncolumns, fnAct, fnAlt, directory, band)
 
 
         return Hsys
@@ -108,8 +108,8 @@ class mtf:
         fc = D/(lambd*focal)    # fc = 1 / 2w
         fn2D = f2D * w
         fr2D = f2D / fc
-        fnAlt = f2D * w
-        fnAct = f2D * w
+        fnAlt = fAlt * w
+        fnAct = fAct * w
         return fn2D, fr2D, fnAct, fnAlt
 
     def mtfDiffract(self,fr2D):
@@ -119,7 +119,7 @@ class mtf:
         :return: diffraction MTF
         """
         #TODO
-        Hdiff = 2/pi * (np.arccos(fr2D) - fr2D * (1 - fr2D**2)**(1/2))
+        Hdiff = 2/np.pi * (np.arccos(fr2D) - fr2D * np.sqrt((1 - fr2D**2)))
         return Hdiff
 
 
@@ -173,10 +173,10 @@ class mtf:
         :return: Smearing MTF
         """
         #TODO
-        Hsmear = np.zeros((fnAlt.size, ncolumns))
+        Hsmear = np.zeros((fnAlt.shape[0], ncolumns))
         for i in range(ncolumns):
             Hsmear[:, i] = np.sinc(ksmear * fnAlt)
-            # Hsmear[:,i] = np.sin(ksmear * np.pi * fnAlt)/(ksmear *np.pi * fnAlt)
+            # Hsmear[:,i] = np.sinc(ksmear * np.pi * fnAlt)/(ksmear *np.pi * fnAlt)
         return Hsmear
 
     def mtfMotion(self, fn2D, kmotion):
@@ -210,5 +210,68 @@ class mtf:
         :return: N/A
         """
         #TODO
+        halfAct = int(np.floor(fnAct.shape[0] / 2))
+        halfAlt = int(np.floor(fnAlt.shape[0] / 2))
+        fig, ax = plt.subplots()
+        plt.suptitle('Alt = ' + str(halfAlt) + ' for ' + band)
+        x_1 = fnAct[halfAct:]
+        y_1 = Hdiff[halfAlt, halfAct:]
+        y_2 = Hdefoc[halfAlt, halfAct:]
+        y_3 = Hwfe[halfAlt, halfAct:]
+        y_4 = Hdet[halfAlt, halfAct:]
+        y_5 = Hsmear[halfAlt, halfAct:]
+        y_6 = Hmotion[halfAlt, halfAct:]
+        y_7 = Hsys[halfAlt, halfAct:]
+        ax.plot(x_1, y_1, 'r', label='Hdiff')
+        ax.plot(x_1, y_2, 'g', label='Hdefoc')
+        ax.plot(x_1, y_3, 'b', label='Hwfe')
+        ax.plot(x_1, y_4, 'k', label='Hdet')
+        ax.plot(x_1, y_5, 'y', label='Hsmear')
+        ax.plot(x_1, y_6, 'r', label='Hmotion')
+        ax.plot(x_1, y_7, 'g', label='Hsys')
+        plt.legend(loc='lower left')
+        plt.xlabel('Spatial Frequencies [-]')
+        plt.ylabel('MTF')
+        plt.grid(True)
+        # plt.show()
+        fig.savefig(self.outdir + '/graph_mtf_alt_' + band + '_graph.png')
 
+        fig2, ax2 = plt.subplots()
+        x_2 = fnAlt[halfAlt:]
+        y_1 = Hdiff[halfAlt:, halfAct]
+        y_2 = Hdefoc[halfAlt:, halfAct]
+        y_3 = Hwfe[halfAlt:, halfAct]
+        y_4 = Hdet[halfAlt:, halfAct]
+        y_5 = Hsmear[halfAlt:, halfAct]
+        y_6 = Hmotion[halfAlt:, halfAct]
+        y_7 = Hsys[halfAlt:, halfAct]
+
+        a = 'Act = ' + str(halfAct) + ' for ' + band
+        plt.suptitle(a)
+        plt.grid(True)
+        plt.xlabel('Spatial Frequencies [-]')
+        plt.ylabel('MTF')
+        ax2.plot(x_2, y_1, 'r', label='Hdiff')
+        ax2.plot(x_2, y_2, 'g', label='Hdefoc')
+        ax2.plot(x_2, y_3, 'b', label='Hwfe')
+        ax2.plot(x_2, y_4, 'k', label='Hdet')
+        ax2.plot(x_2, y_5, 'y', label='Hsmear')
+        ax2.plot(x_2, y_6, 'r', label='Hmotion')
+        ax2.plot(x_2, y_7, 'g', label='Hsys')
+        plt.legend(loc='lower left')
+        # plt.show()
+        fig2.savefig(self.outdir + '/graph_mtf_act_' + band + '_graph.png')
+
+        writeMat(self.outdir, "Hsys", Hsys)
+        writeMat(self.outdir, "Hdet", Hdet)
+
+        if band == 'VNIR-0':
+            file = open('/home/luss/my_shared_folder/lib_out_ism/mtf_nyquist.txt', 'w')
+            file.truncate(0)
+            file.close()
+
+        with open('/home/luss/my_shared_folder/lib_out_ism/mtf_nyquist.txt', 'a') as the_file:
+            the_file.write(band + '\n')
+            the_file.write('mtf_nyquist Act' + '=' + str(Hsys[0, halfAct]) + '\n')
+            the_file.write('mtf_nyquist Alt' + '=' + str(Hsys[halfAlt, 0]) + '\n')
 
