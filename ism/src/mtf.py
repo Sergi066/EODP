@@ -75,7 +75,7 @@ class mtf:
         Hsys = Hdiff * Hdefoc * Hwfe * Hdet * Hsmear * Hmotion# dummy
 
         # Plot cuts ACT/ALT of the MTF
-        # self.plotMtf(Hdiff, Hdefoc, Hwfe, Hdet, Hsmear, Hmotion, Hsys, nlines, ncolumns, fnAct, fnAlt, directory, band)
+        self.plotMtf(Hdiff, Hdefoc, Hwfe, Hdet, Hsmear, Hmotion, Hsys, nlines, ncolumns, fnAct, fnAlt, directory, band)
 
 
         return Hsys
@@ -265,6 +265,7 @@ class mtf:
         writeMat(self.outdir, "Hsys", Hsys)
         writeMat(self.outdir, "Hdet", Hdet)
 
+        """
         if band == 'VNIR-0':
             file = open('/home/luss/my_shared_folder/lib_out_ism/mtf_nyquist.txt', 'w')
             file.truncate(0)
@@ -274,4 +275,4 @@ class mtf:
             the_file.write(band + '\n')
             the_file.write('mtf_nyquist Act' + '=' + str(Hsys[0, halfAct]) + '\n')
             the_file.write('mtf_nyquist Alt' + '=' + str(Hsys[halfAlt, 0]) + '\n')
-
+        """
