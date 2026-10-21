@@ -16,4 +16,4 @@ try:
     myIsm.processModule()
 except Exception:
     traceback.print_exc()
-compare_folders(outdir, referencedir)
+compare_folders(outdir, referencedir, ordered = True)

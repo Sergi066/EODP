@@ -72,11 +72,11 @@ class mtf:
 
         # Calculate the System MTF
         self.logger.debug("Calculation of the Sysmtem MTF by multiplying the different contributors")
-        Hsys = Hdiff * Hdefoc * Hwfe * Hdet * Hsmear * Hmotion# dummy
+        Hsys = Hdiff * Hdefoc * Hwfe * Hdet * Hsmear * Hmotion
 
         # Plot cuts ACT/ALT of the MTF
         self.plotMtf(Hdiff, Hdefoc, Hwfe, Hdet, Hsmear, Hmotion, Hsys, nlines, ncolumns, fnAct, fnAlt, directory, band)
-
+        self.plotMtf2D(Hsys, band)
 
         return Hsys
 
@@ -103,7 +103,7 @@ class mtf:
         fAct = np.arange(-1 / (2 * w), 1 / (2 * w) - eps, fstepAct)
 
         [fnAltxx, fnActxx] = np.meshgrid(fAlt, fAct, indexing='ij')  # Please use ‘ij’ indexing or you will get the transpose
-        f2D = np.sqrt(fnAltxx * fnAltxx + fnActxx * fnActxx)
+        f2D = np.sqrt(fnAltxx*fnAltxx + fnActxx*fnActxx)
 
         fc = D/(lambd*focal)    # fc = 1 / 2w
         fn2D = f2D * w
@@ -160,8 +160,8 @@ class mtf:
         :return: detector MTF
         """
         #TODO
-        # Hdet = np.abs(np.sinc(fn2D))
-        Hdet = np.abs(np.sin(np.pi * fn2D)/(np.pi * fn2D))
+        Hdet = np.abs(np.sinc(fn2D))
+        # Hdet = np.abs(np.sin(np.pi * fn2D)/(np.pi * fn2D)) # which is the same as np.abs(np.sinc(fn2D))
         return Hdet
 
     def mtfSmearing(self, fnAlt, ncolumns, ksmear):
@@ -265,14 +265,17 @@ class mtf:
         writeMat(self.outdir, "Hsys", Hsys)
         writeMat(self.outdir, "Hdet", Hdet)
 
+    def plotMtf2D(self, Hsys, band):
+        """"
+        2D map of the system MTF
+        :param Hsys: System MTF (nlines x ncolumns)
+        :param band: band
         """
-        if band == 'VNIR-0':
-            file = open('/home/luss/my_shared_folder/lib_out_ism/mtf_nyquist.txt', 'w')
-            file.truncate(0)
-            file.close()
-
-        with open('/home/luss/my_shared_folder/lib_out_ism/mtf_nyquist.txt', 'a') as the_file:
-            the_file.write(band + '\n')
-            the_file.write('mtf_nyquist Act' + '=' + str(Hsys[0, halfAct]) + '\n')
-            the_file.write('mtf_nyquist Alt' + '=' + str(Hsys[halfAlt, 0]) + '\n')
-        """
+        fig, ax = plt.subplots(figsize=(20, 10))
+        im = ax.imshow(Hsys, origin='lower', cmap='jet')
+        ax.set_title('System MTF for ' + band, fontsize=20)
+        ax.set_xlabel('ACT', fontsize=16)
+        ax.set_ylabel('ALT', fontsize=16)
+        fig.colorbar(im, ax=ax)
+        fig.savefig(self.outdir + '/system_mtf_2d_' + band + '.png')
+        plt.close(fig)

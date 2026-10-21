@@ -106,10 +106,11 @@ class detectionPhase(initIsm):
         :return: Toa in photons
         """
         #TODO
-        h = scipy.constants.h
-        c = scipy.constants.c
+
+        h = self.constants.h_planck
+        c = self.constants.speed_light
         # toa is in mW/m2; W/m2 is needed
-        toa_ph = toa / 1000 * area_pix * tint / (h * c / wv)
+        toa_ph = toa/1000 * area_pix * tint / (h*c / wv)
         # irrad2phots = toa_ph / toa * 1000
 
         return toa_ph
@@ -122,11 +123,16 @@ class detectionPhase(initIsm):
         :return: toa in electrons
         """
         #TODO
+
+        FWC = self.ismConfig.FWC
         toae = toa * QE
-        for i in range(toae.shape[0]):
-            for j in range(toae.shape[1]):
-                if toae[i,j]>self.ismConfig.FWC:
-                    toae[i,j] = self.ismConfig.FWC
+
+        toae = np.minimum(toae, FWC)
+        # for i in range(toae.shape[0]):
+        #     for j in range(toae.shape[1]):
+        #         if toae[i,j]>self.ismConfig.FWC:
+        #             toae[i,j] = self.ismConfig.FWC
+
         return toae
 
     def badDeadPixels(self, toa,bad_pix,dead_pix,bad_pix_red,dead_pix_red):

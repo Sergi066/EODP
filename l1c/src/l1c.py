@@ -10,6 +10,7 @@ from scipy.interpolate import bisplrep, bisplev
 import matplotlib.pyplot as plt
 from common.io.l1cProduct import writeL1c
 from matplotlib import cm
+from matplotlib import pyplot as pp
 
 class l1c(initL1c):
 
@@ -38,6 +39,8 @@ class l1c(initL1c):
             # -------------------------------------------------------------------------------
             writeL1c(self.outdir, self.globalConfig.l1c_toa + band, lat_l1c, lon_l1c, toa_l1c)
 
+            self.plotL1cToa(lat_l1c, lon_l1c, toa_l1c, band)
+
             self.logger.info("End of BAND " + band)
 
         self.logger.info("End of the L1C Module!")
@@ -64,7 +67,6 @@ class l1c(initL1c):
         '''
         #TODO
 
-
         m = mgrs.MGRS()
 
         mgrs_tiles = set([])
@@ -88,7 +90,7 @@ class l1c(initL1c):
 
         return lat_l1c, lon_l1c, toa_l1c
 
-    def checkSize(self, lat,toa):
+    def checkSize(self, lat, toa):
         '''
         Check the sizes of the input radiances and geodetic coordinates.
         If they don't match, exit.
@@ -96,4 +98,26 @@ class l1c(initL1c):
         :param toa: Radiance 2D matrix
         :return: NA
         '''
-        #TODO
+        if lat.shape[0] != toa.shape[0] or lat.shape[1] != toa.shape[1]:
+            print('Different Arrays warning')
+
+        # TODO
+
+    def plotL1cToa(self, lat_l1c, lon_l1c, toa_l1c, band):
+        jet = pp.get_cmap('jet', len(lat_l1c))
+        toa_l1c[np.argwhere(toa_l1c < 0)] = 0
+        max_toa = np.max(toa_l1c)
+        # Plot stuff
+        fig = plt.figure(figsize=(20, 10))
+        clr = np.zeros(len(lat_l1c))
+        for ii in range(len(lat_l1c)):
+            clr = jet(toa_l1c[ii] / max_toa)
+            plt.plot(lon_l1c[ii], lat_l1c[ii], '.', color=clr, markersize=10)
+        plt.title('Projection on ground', fontsize=20)
+        plt.xlabel('Longitude [deg]', fontsize=16)
+        plt.ylabel('Latitude [deg]', fontsize=16)
+        plt.grid()
+        plt.axis('equal')
+        plt.savefig(self.outdir + 'toa_' + band + '.png')
+        plt.close(fig)
+

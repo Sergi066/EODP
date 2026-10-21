@@ -107,11 +107,12 @@ def compare_folders(results_dir, reference_dir, ordered=False, var="toa", tol=1e
 
 def _print_report(report, var, tol):
     """Console summary table."""
+    print("\n***** COMPARISON REPORT SUMMARY TABLE *****\n")
     f = report["files"]
     print(f"Variable: {var} | ordered: {report['ordered']} | tol: {tol} | matched: {len(f)} | "
           f"only in results: {len(report['only_results'])} | "
           f"only in reference: {len(report['only_reference'])}")
-    print(f"{'file':<40} {'status':<16} {'max|diff|':>11} {'RMS':>11} {'%≤tol':>8} {'corr':>9}")
+    print(f"{'file':<40} {'status':<16} {'max|diff|':>11} {'RMS':>11} {'%≤ tol':>8} {'corr':>9}")
     for name, s in f.items():
         if "max_abs_diff" in s:
             print(f"{name:<40} {s['status']:<16} {s['max_abs_diff']:>11.4g} "
